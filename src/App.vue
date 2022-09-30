@@ -51,8 +51,8 @@ import { SupabaseAuthClient } from '@supabase/supabase-js/dist/module/lib/Supaba
 
 <script>
 
-const SUPABASE_URL = 'YOUR_SUPABASE_URL'
-const SUPABASE_KEY = 'ANON_SUPABASE_KEY'
+const SUPABASE_URL = 'https://igjsyrodxhfbwtoaoflv.supabase.co'
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlnanN5cm9keGhmYnd0b2FvZmx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2NjMzMzczMjIsImV4cCI6MTk3ODkxMzMyMn0.UD4tQ_XICjhtKUnnCNC09i7aoyynyrq2t8RdRvgIESs'
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
 
 
@@ -60,33 +60,74 @@ export default {
   methods: {  
     //this method allows a new user to sign up the system. Once done, the user receives an email
     //asking for account validation. Once the validation made the user is added to the system
-    async register(){
-
-    },
+    async register(){ 
+        try { 
+          const { user, session, error } = await supabase.auth.signUp({ 
+            email: this.email, 
+            password: this.passwd, 
+          }); 
+          if (error) throw error; 
+        } catch (error) { 
+          alert(error.error_description || error.message); 
+        }  
+      }, 
     //this method allows the already registred user to log in the system.
     //only authenticated users can later add or read the poems
     async login(){
-
-    },
-    //this method allows to add new poem for the authenticated user (after sign in) 
-    //it is called when the user click on the add poem button after being entered
-    //the title, the content, the visibility and the associated illustration
+        try { 
+          const { user, session, error } = await supabase.auth.signIn({ 
+            email: this.email, 
+            password: this.passwd, 
+          });
+          if (error) throw error; 
+          else {
+        document.getElementById('signOut').style.visibility='hidden' 
+        document.getElementById('addPoem').style.visibility='visible'
+          }
+        } catch (error) { 
+          alert(error.error_description || error.message); 
+        }  
+      },
     async createPoem(){
-    
+      var res;
+      
+        //insert a new illustration file to the poems illustration bucket called: poemsillustrations
+        //the name of the file is a concatination of the user id and the uploaded file name
+        //this way, different users may upload files with the same name 
+        const { data: objects, error } = await supabase.storage
+          .from('images')
+          .upload(supabase.auth.user().id+"_"+file.files[0].name, file.files[0])
+        
+        //extract the url of the added file
+        //this url is added as a field of the poem entry to add
+        res = supabase.storage
+          .from('images')
+          .getPublicUrl(supabase.auth.user().id+"_"+file.files[0].name).data.publicURL;
+                
+        //insert a new raw in poems' table based on the entered data : title, content and hidden status
+        //P.S. the email of the author is automatically added since the email column is declarated
+        //with a default value auth.email(). The user cannot associate its poem to another author !
+        try{
+        const { data, error }  =  await supabase
+            .from('poems')
+            .insert([
+            { hidden: this.hidden, email:this.email, title: this.title, content: this.content, illustrationurl: res} ])
+        if(error) throw(error)
+        } catch(error) {alert(error.error_description || error.meassage)}
     },
     //this method allows to extract all readable poems of the authenticated user
     //including his peoms and the not hidden poems. This policy is implemented by the supabase system 
     async fetchPoems(){
         
-    },
-    //this function allows to display the next accessibe poem for the current user
-    //the fetch button should be selected before
-    nextPoem(){
-    
-    }
-  }  
-}
-</script>
+      },
+      //this function allows to display the next accessibe poem for the current user
+      //the fetch button should be selected before
+      nextPoem(){
+      
+      }
+    }  
+  }
+  </script>
 
 <style>
 @import './assets/base.css';
