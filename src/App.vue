@@ -55,6 +55,9 @@ const SUPABASE_URL = 'https://igjsyrodxhfbwtoaoflv.supabase.co'
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlnanN5cm9keGhmYnd0b2FvZmx2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2NjMzMzczMjIsImV4cCI6MTk3ODkxMzMyMn0.UD4tQ_XICjhtKUnnCNC09i7aoyynyrq2t8RdRvgIESs'
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
 
+var poemsList  //list of selected poems readabe by the current user
+var currentpoem   //the currentely displayed poem that the user consults
+
 
 export default {
   methods: {  
@@ -118,16 +121,39 @@ export default {
     //this method allows to extract all readable poems of the authenticated user
     //including his peoms and the not hidden poems. This policy is implemented by the supabase system 
     async fetchPoems(){
-        
-      },
+      //mange supabase access exceptions
+        try{
+        //select all accessible poems (owned poems or public ones) 
+        const { data, error } = await supabase
+          .from('poems')
+          .select()
+        poemsList=data
+        if (error) throw error;
+        //display the first accessible poem if there is at least one poem
+        if(data.length>0){
+            document.getElementById('poemtitle').innerHTML=data[0].title+"    "
+            document.getElementById('poemcontent').value=data[0].content
+            document.getElementById('poemillustration').src=data[0].illustrationurl
+        }
+        //store the indexof the currently displayed poem
+        currentpoem=0;
+      } catch (error) {
+        alert(error.error_description || error.message);
+      }    
+    },
       //this function allows to display the next accessibe poem for the current user
       //the fetch button should be selected before
       nextPoem(){
-      
-      }
-    }  
-  }
-  </script>
+      if(currentpoem<poemsList.length-1) {
+          currentpoem++
+          document.getElementById('poemtitle').innerHTML=poemsList[currentpoem].title+"    "
+          document.getElementById('poemcontent').value=poemsList[currentpoem].content
+          document.getElementById('poemillustration').src=poemsList[currentpoem].illustrationurl
+        }
+    }
+  }  
+}
+</script>
 
 <style>
 @import './assets/base.css';
