@@ -19,6 +19,7 @@ import { SupabaseAuthClient } from '@supabase/supabase-js/dist/module/lib/Supaba
       <button v-on:click="login()">Sign In</button>
       
     </div>
+  
     <div class="hidden" id="addPoem">
       <div><SignIn msg="Write your poem !" /></div>
       <h3>The poem remains private, until you make it public</h3>
@@ -35,6 +36,10 @@ import { SupabaseAuthClient } from '@supabase/supabase-js/dist/module/lib/Supaba
         <label>Hidden poem</label>
       <br><button v-on:click="createPoem()">Add the poem</button>
       <button v-on:click="fetchPoems()">List of poems</button><br>
+      <div>
+        <input type="text" v-model="mot">
+        <button v-on:click="filtrer()">Recherche</button>
+   </div>
       <label for="poemtitle" id="poemtitle" style="color: teal;font-weight: 500;"> ... </label> 
       <img id="poemillustration" src="./assets/null.jpg" alt="poem illustration" width="75" height="75" style="background-color:gray;"/><br>
       <textarea  id="poemcontent" readonly rows="10" cols="50"> ... </textarea> <br>
@@ -150,7 +155,26 @@ export default {
           document.getElementById('poemcontent').value=poemsList[currentpoem].content
           document.getElementById('poemillustration').src=poemsList[currentpoem].illustrationurl
         }
-    }
+    },
+    async filtrer(){
+      try{
+        const { data, error } = await supabase
+        .from('poems')
+        .select()
+        .like('title','%'+this.mot+'%')
+        poemsList=data
+        if(data.length>0){
+            document.getElementById('poemtitle').innerHTML=data[0].title+"    "
+            document.getElementById('poemcontent').value=data[0].content
+            document.getElementById('poemillustration').src=data[0].illustrationurl
+        }
+        currentpoem=0;
+            if (error) throw error;
+            }
+            catch (error) {
+              alert(error.error_description || error.message);
+            }
+    }, 
   }  
 }
 </script>
