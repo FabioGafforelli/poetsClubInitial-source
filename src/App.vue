@@ -23,6 +23,12 @@ import { SupabaseAuthClient } from '@supabase/supabase-js/dist/module/lib/Supaba
     <div class="hidden" id="addPoem">
       <div><SignIn msg="Write your poem !" /></div>
       <h3>The poem remains private, until you make it public</h3>
+      <select required name="Language" v-model="Language" >
+              <option>Français</option>
+              <option>Anglais</option>
+              <option>Espagnol</option>
+              <option>Pontissalien</option>
+      </select>
       <label>Poem's title</label><br>
 	      <input type="text" required name="title" v-model="title" placeholder="edit me"><br>
 	      <label>Poem's content</label><br>
@@ -119,7 +125,7 @@ export default {
         const { data, error }  =  await supabase
             .from('poems')
             .insert([
-            { hidden: this.hidden, email:this.email, title: this.title, content: this.content, illustrationurl: res} ])
+            { hidden: this.hidden, email:this.email, title: this.title, content: this.content, illustrationurl: res, Language:this.Language} ])
         if(error) throw(error)
         } catch(error) {alert(error.error_description || error.meassage)}
     },
